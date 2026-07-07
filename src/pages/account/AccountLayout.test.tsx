@@ -3,15 +3,16 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import AccountLayout from './AccountLayout'
+import { ROUTES } from '../../routes/constants'
 
 describe('AccountLayout', () => {
   it('renders the account tabs and nested route content', () => {
     render(
-      <MemoryRouter initialEntries={['/account/personal-info']}>
+      <MemoryRouter initialEntries={[ROUTES.ACCOUNT_PERSONAL_INFO]}>
         <Routes>
           <Route element={<AccountLayout />}>
             <Route
-              path="/account/personal-info"
+              path={ROUTES.ACCOUNT_PERSONAL_INFO}
               element={<div>Personal info form</div>}
             />
           </Route>
