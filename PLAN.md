@@ -8,46 +8,46 @@
 
 ## 1. Key decisions
 
-| Concern      | Decision                                       | Rationale                                                                                                                    |
-| ------------ | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Build tool   | Vite + React + TS                              | Fast, first-class Vitest integration                                                                                         |
-| Persistence  | **`sessionStorage`** (via redux-persist)       | Survives refresh, clears on tab/window close — matches "closing tab deletes info". Switchable to `localStorage` in one line. |
-| Catalog data | Static seed `src/data/products.ts`             | No backend; only user state (cart/orders/account) is mutable                                                                 |
-| Global state | Redux Toolkit for app **data**                 | cart, orders, auth, account, preferences                                                                                     |
-| Context      | UI ephemera only                               | Snackbar/notifications + theme bridge                                                                                        |
-| Routing      | React Router v6 nested layout routes           | Layout composition + fake-auth guard                                                                                         |
-| Forms        | React Hook Form + Yup (`yupResolver`)          | One schema per form, colocated with page                                                                                     |
-| Theming      | Custom MUI `createTheme` + component overrides | "MUI but looks different"                                                                                                    |
-
-**Persistence behavior:** refresh keeps cart/login/account (`sessionStorage`); closing
-the tab or window clears everything. To make data survive tab close too, switch the
-persist storage to `localStorage`.
+| Concern      | Decision                                                                                                                                         | Rationale                                                                                                                                                                                  |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Build tool   | Vite + React + TS                                                                                                                                | Fast, first-class Vitest integration                                                                                                                                                       |
+| Persistence  | In-memory only (Redux state, no persistence layer)                                                                                               | Cleared on refresh and on tab/window close, per original spec; no `redux-persist` dependency                                                                                               |
+| Catalog data | Static seed `src/data/products.ts`                                                                                                               | No backend; only user state (cart/orders/account) is mutable                                                                                                                               |
+| Global state | Redux Toolkit for app **data**                                                                                                                   | cart, orders, auth, account, preferences                                                                                                                                                   |
+| Context      | UI ephemera only                                                                                                                                 | Snackbar/notifications + theme bridge                                                                                                                                                      |
+| Routing      | React Router v6 nested layout routes                                                                                                             | Layout composition + fake-auth guard                                                                                                                                                       |
+| Forms        | React Hook Form + Yup (`yupResolver`)                                                                                                            | One schema per form, colocated with page                                                                                                                                                   |
+| Theming      | Custom MUI `createTheme` (component defaults) + same tokens mirrored as CSS custom properties on `:root`                                         | "MUI but looks different"; CSS vars available to plain SCSS files                                                                                                                          |
+| Styling      | Global Sass (`.scss`, not CSS Modules) + CSS variables; one semantic kebab-case root class per component, children nested via plain SCSS nesting | Colocated, framework-agnostic styling instead of emotion-generated classes from `styled()`/`sx`; hierarchy visible directly in the file instead of behind a `styles.x` object              |
+| Imports      | External packages (alphabetized) → project-relative (alphabetized), ESLint-enforced                                                              | Consistent, mechanically checked import ordering; `eslint-plugin-import`'s `import/order` can't reliably pin React ahead of other packages within one group, so React sorts alongside them |
 
 ---
 
 ## 2. State ownership
 
-**Redux slices** (`src/store/slices/`)
+**Redux reducers** (each in its own `src/store/<name>/reducer.ts` — no shared
+`slices/` or `selectors/` folder)
 
-- `authSlice` — `{ user, isLoggedIn }`. Fake login/signup populates this.
-- `cartSlice` — `{ items: [{ productId, quantity }] }`. add / remove / setQuantity / clear.
-- `orderSlice` — `{ orders: Order[] }`. Checkout pushes here; feeds Statistics.
-- `preferencesSlice` — `{ themeMode, currency, language }`. Drives theme.
-- `filterSlice` — catalog search term, category, sort.
+- `auth` — `{ user, isLoggedIn }`. Fake login/signup populates this.
+- `cart` — `{ items: [{ productId, quantity }] }`. add / remove / setQuantity / clear.
+- `order` — `{ orders: Order[] }`. Checkout pushes here; feeds Statistics.
+- `preferences` — `{ themeMode, currency, language }`. Drives theme.
+- `filter` — catalog search term, category, sort.
 
-**Persistence:** redux-persist wraps the root reducer with `sessionStorage`. Whitelist
-`auth`, `cart`, `order`, `preferences`. `filter` may stay non-persisted (transient UI).
+`src/store/rootReducer.ts` combines them; `src/store/index.ts` only holds store
+config (configureStore).
 
-**Context**
+**Context** (`src/context/`, one file per context — see §5)
 
-- `NotificationContext` — snackbar/toast.
-- `ThemeModeProvider` — reads `preferences.themeMode` from Redux, builds MUI theme.
+- `NotificationContext.tsx` — snackbar/toast.
+- `ThemeModeContext.tsx` — `ThemeModeProvider` builds the MUI theme; will read
+  `preferences.themeMode` from Redux once that reducer lands (PR9).
 
-**Derived (selectors, no slice)**
+**Derived (selectors, colocated with their reducer folder, no separate slice)**
 
-- Cart totals/counts → `cartSelectors` (memoized with `createSelector`).
+- Cart totals/counts → `store/cart/selectors.ts` (memoized with `createSelector`).
 - Statistics (total spent, order count, items bought, favorite category, avg order value)
-  → `statisticsSelectors` over `orderSlice`.
+  → `store/order/selectors.ts`, derived over `order` state.
 
 ---
 
@@ -68,48 +68,177 @@ persist storage to `localStorage`.
 ```
 src/
   store/                    # ALL Redux
-    index.ts                # configureStore + persist + RootState / AppDispatch
+    index.ts                # configureStore + RootState / AppDispatch
+    rootReducer.ts          # combineReducers — imports each reducer folder
     hooks.ts                # typed useAppDispatch / useAppSelector ONLY
-    slices/
-      authSlice.ts
-      cartSlice.ts
-      orderSlice.ts
-      preferencesSlice.ts
-      filterSlice.ts
-    selectors/
-      cartSelectors.ts
-      statisticsSelectors.ts
-  pages/                    # presentational, thin
     auth/
-      LoginPage.tsx         + loginSchema.ts        # schema colocated
-      SignupPage.tsx        + signupSchema.ts
-    catalog/                # ProductList, ProductCard, Filters
+      reducer.ts
+    cart/
+      reducer.ts
+      selectors.ts
+    order/
+      reducer.ts
+      selectors.ts          # statistics selectors
+    preferences/
+      reducer.ts
+    filter/
+      reducer.ts
+  pages/                    # presentational, thin — folder per component
+    auth/
+      login-page/
+        LoginPage.tsx
+        LoginPage.scss
+        LoginPage.test.tsx
+        loginSchema.ts       # schema colocated
+      signup-page/
+        SignupPage.tsx
+        SignupPage.scss
+        SignupPage.test.tsx
+        signupSchema.ts
+    catalog/                # ProductList, ProductCard, Filters — each its own folder
     product/                # ProductDetailPage
     cart/                   # CartPage
     delivery/
-      CheckoutPage.tsx      + deliverySchema.ts
+      checkout-page/
+        CheckoutPage.tsx
+        CheckoutPage.scss
+        CheckoutPage.test.tsx
+        deliverySchema.ts
     account/
-      personalInfo/         PersonalInfoPage.tsx + personalInfoSchema.ts
-      preferences/
-      statistics/           # cards + charts
-  hooks/                    # reusable custom hooks (useCart, useDebounce, useNotification)
-  components/               # shared UI + layouts + ProtectedRoute
-    layouts/                # MainLayout, AuthLayout, AccountLayout
-  theme/
+      AccountLayout.tsx      # Tabs nav + Outlet — root files of the page itself
+      AccountLayout.scss
+      AccountLayout.test.tsx
+      constants.ts           # ACCOUNT_TABS
+      types.ts                # IAccountTab
+      component/              # page-local child components (see §5)
+        personal-info/
+          PersonalInfo.tsx
+          PersonalInfo.scss
+          PersonalInfo.test.tsx
+        preferences/
+          Preferences.tsx
+          Preferences.scss
+          Preferences.test.tsx
+        statistics/
+          Statistics.tsx
+          Statistics.scss
+          Statistics.test.tsx
+  routes/                   # ROUTES path constants + AppRoutes (the <Routes> tree,
+                             # rendered inside BrowserRouter in App.tsx)
+    constants.ts
+    AppRoutes.tsx
+  hooks/                    # reusable hooks with NO Context/store dependency
+                             # (useCart, useDebounce) — context hooks live inside
+                             # their context/*.tsx file; store hooks live in
+                             # store/hooks.ts
+  context/                  # one file per context: interface + createContext +
+                             # Provider + consuming hook, all together
+    NotificationContext.tsx
+    ThemeModeContext.tsx
+  components/               # shared UI reused ACROSS pages — layouts, ProtectedRoute
+    layouts/
+      main-layout/
+        MainLayout.tsx
+        MainLayout.scss
+        MainLayout.test.tsx
+      auth-layout/
+        AuthLayout.tsx
+        AuthLayout.scss
+        AuthLayout.test.tsx
+  theme/                    # MUI createTheme + color tokens only — the
+                             # ThemeModeProvider itself lives in context/
+  styles/
+    variables.scss          # :root CSS custom properties, imported once in main.tsx
   data/products.ts          # seed catalog
   types/
-  utils/                    # currency/date formatters
+  utils/                    # general reusable constants (UPPER_CASE, e.g.
+                             # TIME_DURATIONS, EMAIL_REGEX) + pure-function
+                             # helpers (formatCurrency, formatDate), split
+                             # per domain (date.ts, currency.ts, ...) — populated
+                             # once a PR actually needs one
   test/                     # setup.ts, renderWithProviders
 ```
 
-**hooks distinction:** `store/hooks.ts` = typed Redux hooks only. `src/hooks/` =
-reusable business hooks composing them.
+**hooks distinction:** `store/hooks.ts` = typed Redux hooks only. Context hooks
+(`useNotification`, `useThemeMode`) live inside their own `context/*.tsx` file,
+never in `src/hooks/`. `src/hooks/` is reserved for reusable hooks with no
+Context/store dependency (`useCart`, `useDebounce`).
+
+**utils convention:** `src/utils/` holds general-purpose, reusable constants
+(`UPPER_CASE`, e.g. `TIME_DURATIONS`, `EMAIL_REGEX`) and pure-function helpers
+(`formatCurrency`, `formatDate`), split into per-domain files (`date.ts`,
+`currency.ts`) rather than one catch-all file. Populated as PRs actually need one —
+not scaffolded speculatively.
 
 **schemas:** colocated per form page (each schema serves one form).
 
+**store folder convention:** `store/index.ts` only configures the store
+(configureStore only, no persistence layer). `store/rootReducer.ts` combines every
+reducer. Each reducer gets its own folder (`store/<name>/`) holding `reducer.ts` and
+any related files (`selectors.ts`, types, etc.) for that reducer — no shared
+`slices/` or `selectors/` folder.
+
+**component folder convention:** every component (page or shared) lives in its own
+kebab-case folder containing its PascalCase files: `Component.tsx`,
+`Component.scss`, `Component.test.tsx` (see §5 Coding conventions). When a
+component has local constant data or local types, they're extracted into sibling
+`constants.ts` / `types.ts` files in the same folder rather than defined inline.
+
+**pages vs. components:** a page's own root files (`Page.tsx` + its `.scss`/
+`.test.tsx` + any page-only `constants.ts`/`types.ts`/hooks) sit directly in the
+page's folder under `pages/`. If a page needs child components of its own (not
+just data), they go in a page-local `component/` folder inside that same page
+folder (e.g. `pages/account/component/personal-info/`) — not the top-level
+`src/components/`, which is reserved for UI genuinely reused across multiple pages
+(the 3 layouts, `ProtectedRoute`).
+
 ---
 
-## 5. Routing
+## 5. Coding conventions
+
+- **TypeScript everywhere** — no `.js`/`.jsx` files; strict mode (set in PR1).
+- **Component folders** — kebab-case folder name, PascalCase filenames inside
+  (`login-page/LoginPage.tsx`), one component per folder with its style module and
+  test colocated.
+- **Styling** — plain Sass, not CSS Modules: `Component.scss` imported as a
+  side-effect (`import './Component.scss'`, no `styles` object). One semantic
+  kebab-case root class per component (`.login-page`, `.main-layout`), matching the
+  component's own name — never a generic `.root`. Children are plain nested
+  selectors under the root class (`.toolbar`, `.content`), applied as literal string
+  `className`s, so the DOM hierarchy is visible directly in the SCSS file. Always
+  select by class — never by tag (`div`, `h1`) or `#id`. CSS custom properties for
+  shared tokens (colors, spacing) live in `src/styles/variables.scss`. Avoid MUI
+  `sx`/`styled()` for structural/visual styling (MUI props remain fine for behavior,
+  e.g. `component=` swapping).
+- **Tests** — colocated as `Component.test.tsx`.
+- **Import order** — external packages (alphabetized), then project-relative
+  imports (alphabetized), each group separated by a blank line; enforced by
+  ESLint's `eslint-plugin-import` `import/order` rule (added in PR2 setup).
+- **Constants and types** — never defined inline in a component/logic file; always
+  in sibling files. Inside a component folder (one component per folder): generic
+  `constants.ts` / `types.ts`. Inside a flat multi-file folder (e.g. `hooks/`, where
+  `types.ts` alone would collide across files): suffix per file, e.g.
+  `useCart.types.ts`. Constant identifiers are `UPPER_CASE` (`ACCOUNT_TABS`,
+  `THEME_COLORS`).
+- **Naming: types vs. interfaces** — every `interface` is prefixed `I`
+  (`INotificationContextValue`, `IAccountTab`); every `type` alias is prefixed `T`
+  (`TRootState`, `TAppDispatch`).
+- **Context files** — one file per React Context in `src/context/<Name>Context.tsx`,
+  holding everything together: the value interface, `createContext`, the `Provider`
+  component, and the consuming hook (e.g. `useNotification`). This intentionally
+  overrides `react-refresh/only-export-components` (a context module mixing a
+  non-component export with a component is exactly the point), so each context file
+  opens with a file-level `/* eslint-disable react-refresh/only-export-components
+-- ... */` comment explaining why.
+- **Route paths** — every route path is centralized in `routes/constants.ts` as
+  `ROUTES` (`ROUTES.HOME`, `ROUTES.CART`, ...). Never hardcode a path string a
+  second time once it exists there — `<Route path=...>`, `<Navigate to=...>`,
+  `<Link to=...>`, and any nav-link/tab data array (`NAV_LINKS`, `ACCOUNT_TABS`)
+  all reference `ROUTES` instead.
+
+---
+
+## 6. Routing
 
 ```
 AuthLayout
@@ -131,7 +260,7 @@ MainLayout (header + nav; ProtectedRoute)
 
 ---
 
-## 6. Testing (Vitest)
+## 7. Testing (Vitest)
 
 - Vitest + React Testing Library + `@testing-library/jest-dom` + user-event. No MSW.
 - `renderWithProviders` helper: store + theme + router + notification context.
@@ -139,26 +268,26 @@ MainLayout (header + nav; ProtectedRoute)
 
 ---
 
-## 7. PR / commit roadmap
+## 8. PR / commit roadmap
 
-Slices are introduced in the PR of their first consumer.
+Reducers are introduced in the PR of their first consumer.
 
-| PR                          | Scope                                                                                                             | Notes                |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------- |
-| 1. Setup & config           | Vite scaffold, TS strict, ESLint, Prettier, Vitest+RTL, scripts, MUI base                                         | one commit           |
-| 2. Core structure & routing | store + persist + typed hooks, providers, custom theme, 3 layouts, route tree + placeholders, ProtectedRoute, 404 |                      |
-| 3. Auth                     | `authSlice`, Login + Signup (RHF+Yup), fake login -> redirect                                                     |                      |
-| 4. Catalog                  | seed `products.ts`, `filterSlice`, grid + filters/search/sort                                                     |                      |
-| 5. Product item             | detail view; Add to cart -> introduces `cartSlice`                                                                |                      |
-| 6. Cart                     | cart list, quantity stepper, totals, remove/clear                                                                 |                      |
-| 7. Delivery/checkout        | delivery form, place order -> `orderSlice`, confirmation                                                          | needs non-empty cart |
-| 8. Account — Personal Info  | edit `authSlice.user`                                                                                             |                      |
-| 9. Account — Preferences    | `preferencesSlice`, theme toggle wired to ThemeModeProvider                                                       |                      |
-| 10. Account — Statistics    | selectors + MUI cards + Recharts charts                                                                           | needs orders         |
+| PR                          | Scope                                                                                                   | Notes                |
+| --------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------- |
+| 1. Setup & config           | Vite scaffold, TS strict, ESLint, Prettier, Vitest+RTL, scripts, MUI base                               | one commit           |
+| 2. Core structure & routing | store + typed hooks, providers, custom theme, 3 layouts, route tree + placeholders, ProtectedRoute, 404 |                      |
+| 3. Auth                     | `auth` reducer, Login + Signup (RHF+Yup), fake login -> redirect                                        |                      |
+| 4. Catalog                  | seed `products.ts`, `filter` reducer, grid + filters/search/sort                                        |                      |
+| 5. Product item             | detail view; Add to cart -> introduces `cart` reducer                                                   |                      |
+| 6. Cart                     | cart list, quantity stepper, totals, remove/clear                                                       |                      |
+| 7. Delivery/checkout        | delivery form, place order -> `order` reducer, confirmation                                             | needs non-empty cart |
+| 8. Account — Personal Info  | edit `auth.user`                                                                                        |                      |
+| 9. Account — Preferences    | `preferences` reducer, theme toggle wired to ThemeModeProvider                                          |                      |
+| 10. Account — Statistics    | selectors + MUI cards + Recharts charts                                                                 | needs orders         |
 
 ---
 
-## 8. Kickoff commands per step
+## 9. Kickoff commands per step
 
 Run from the project root. Each PR starts on its own branch.
 
@@ -171,7 +300,7 @@ npm install
 
 # runtime deps
 npm install @mui/material @emotion/react @emotion/styled @mui/icons-material
-npm install @reduxjs/toolkit react-redux redux-persist react-router-dom
+npm install @reduxjs/toolkit react-redux react-router-dom
 npm install react-hook-form @hookform/resolvers yup
 
 # dev deps: testing + lint/format
@@ -186,78 +315,81 @@ npm run test
 ### PR 2 — Core structure & routing
 
 ```bash
-git checkout -b pr2-core-structure
-# create: src/store (configureStore + redux-persist over sessionStorage),
-#         src/store/hooks.ts, src/components/layouts, src/theme,
-#         src/pages placeholders, ProtectedRoute, router
+git checkout -b feature/core-structure-routing
+npm install -D sass eslint-plugin-import
+# create: src/store/index.ts (configureStore, in-memory only — no persistence),
+#         src/store/rootReducer.ts, src/store/hooks.ts, src/components/layouts
+#         (folder-per-component, .scss + .test.tsx), src/theme,
+#         src/styles/variables.scss, src/pages placeholders, ProtectedRoute, router
+# also: add `import/order` rule to eslint.config.js (react / external / project groups)
 npm run dev
 ```
 
 ### PR 3 — Auth
 
 ```bash
-git checkout -b pr3-auth
-# create: store/slices/authSlice.ts, pages/auth/{LoginPage,loginSchema,SignupPage,signupSchema}
+git checkout -b feature/auth
+# create: store/auth/reducer.ts, pages/auth/{login-page,signup-page}
 npm run test
 ```
 
 ### PR 4 — Catalog
 
 ```bash
-git checkout -b pr4-catalog
-# create: data/products.ts, store/slices/filterSlice.ts, pages/catalog/*
+git checkout -b feature/catalog
+# create: data/products.ts, store/filter/reducer.ts, pages/catalog/*
 npm run dev
 ```
 
 ### PR 5 — Product item
 
 ```bash
-git checkout -b pr5-product
-# create: pages/product/ProductDetailPage.tsx, store/slices/cartSlice.ts, hooks/useCart.ts
+git checkout -b feature/product-item
+# create: pages/product/product-detail-page/ProductDetailPage.tsx, store/cart/reducer.ts, hooks/useCart.ts
 ```
 
 ### PR 6 — Cart
 
 ```bash
-git checkout -b pr6-cart
-# create: pages/cart/CartPage.tsx, store/selectors/cartSelectors.ts
+git checkout -b feature/cart
+# create: pages/cart/cart-page/CartPage.tsx, store/cart/selectors.ts
 ```
 
 ### PR 7 — Delivery / checkout
 
 ```bash
-git checkout -b pr7-delivery
-# create: store/slices/orderSlice.ts, pages/delivery/{CheckoutPage,deliverySchema}
+git checkout -b feature/delivery-checkout
+# create: store/order/reducer.ts, pages/delivery/checkout-page
 ```
 
 ### PR 8 — Account: Personal Info
 
 ```bash
-git checkout -b pr8-account-personal-info
-# create: pages/account/personalInfo/{PersonalInfoPage,personalInfoSchema}
+git checkout -b feature/account-personal-info
+# create: pages/account/component/personal-info/{PersonalInfo,personalInfoSchema}
 ```
 
 ### PR 9 — Account: Preferences
 
 ```bash
-git checkout -b pr9-account-preferences
-# create: store/slices/preferencesSlice.ts, pages/account/preferences/*
+git checkout -b feature/account-preferences
+# create: store/preferences/reducer.ts, pages/account/component/preferences/*
 ```
 
 ### PR 10 — Account: Statistics
 
 ```bash
-git checkout -b pr10-account-statistics
+git checkout -b feature/account-statistics
 npm install recharts
-# create: store/selectors/statisticsSelectors.ts, pages/account/statistics/*
+# create: store/order/selectors.ts, pages/account/component/statistics/*
 ```
 
 ---
 
-## 9. Progress log
+## 10. Progress log
 
 - [x] PR 1 - Setup & config
-- [ ] PR 2 - Core structure & routing
+- [x] PR 2 - Core structure & routing
 - [ ] PR 3 - Auth
 - [ ] PR 4 - Catalog
 - [ ] PR 5 - Product item
