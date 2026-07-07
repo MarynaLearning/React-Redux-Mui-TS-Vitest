@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import App from './App'
+import CatalogPage from './CatalogPage'
 
-describe('App', () => {
-  it('renders the catalog page at the root route', () => {
-    render(<App />)
+describe('CatalogPage', () => {
+  it('renders the page heading', () => {
+    render(<CatalogPage />)
     expect(screen.getByRole('heading', { name: 'Catalog' })).toBeInTheDocument()
   })
 })

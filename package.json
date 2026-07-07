@@ -25,7 +25,6 @@
     "react-hook-form": "^7.80.0",
     "react-redux": "^9.3.0",
     "react-router-dom": "^7.18.1",
-    "redux-persist": "^6.0.0",
     "yup": "^1.7.1"
   },
   "devDependencies": {
@@ -39,12 +38,14 @@
     "@vitejs/plugin-react": "^6.0.3",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
     "jsdom": "^28.1.0",
     "prettier": "^3.9.4",
+    "sass": "^1.101.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.62.0",
     "vite": "^8.1.1",
