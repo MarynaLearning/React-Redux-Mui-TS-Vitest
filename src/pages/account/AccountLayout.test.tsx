@@ -2,8 +2,9 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
+import { ROUTES } from '@/routes/constants'
+
 import AccountLayout from './AccountLayout'
-import { ROUTES } from '../../routes/constants'
 
 describe('AccountLayout', () => {
   it('renders the account tabs and nested route content', () => {

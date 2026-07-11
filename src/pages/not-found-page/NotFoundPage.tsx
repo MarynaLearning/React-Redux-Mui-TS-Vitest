@@ -1,7 +1,7 @@
 import { Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 
-import { ROUTES } from '../../routes/constants'
+import { ROUTES } from '@/routes/constants'
 import './NotFoundPage.scss'
 
 const NotFoundPage = () => (

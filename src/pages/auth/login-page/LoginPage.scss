@@ -1,3 +1,7 @@
 .login-page {
   padding: calc(var(--spacing-unit) * 2) 0;
+
+  .signup-link {
+    margin-top: calc(var(--spacing-unit) * 2);
+  }
 }

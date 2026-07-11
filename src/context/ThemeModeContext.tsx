@@ -5,7 +5,7 @@ import type { PaletteMode } from '@mui/material'
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 
-import { getTheme } from '../theme'
+import { getTheme } from '@/theme'
 
 export interface IThemeModeContextValue {
   mode: PaletteMode
