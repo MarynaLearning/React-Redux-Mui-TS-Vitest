@@ -1,4 +1,5 @@
 import { AppBar, Button, Container, Toolbar, Typography } from '@mui/material'
+import { Suspense } from 'react'
 import { Link as RouterLink, Outlet } from 'react-router-dom'
 
 import { NAV_LINKS } from './constants'
@@ -26,7 +27,9 @@ const MainLayout = () => {
         </Toolbar>
       </AppBar>
       <Container component="main" className="content">
-        <Outlet />
+        <Suspense fallback={<div>Loading...</div>}>
+          <Outlet />
+        </Suspense>
       </Container>
     </div>
   )

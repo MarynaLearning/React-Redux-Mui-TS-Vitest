@@ -442,7 +442,7 @@ npm install recharts
 
 - [x] PR 1 - Setup & config
 - [x] PR 2 - Core structure & routing
-- [ ] PR 3 - Auth
+- [x] PR 3 - Auth
 - [ ] PR 4 - Catalog
 - [ ] PR 5 - Product item
 - [ ] PR 6 - Cart

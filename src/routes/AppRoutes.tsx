@@ -32,34 +32,36 @@ const ProductDetailPage = lazy(
 )
 
 const AppRoutes = () => (
-  <Suspense fallback={<div>Loading...</div>}>
-    <Routes>
-      <Route element={<AuthLayout />}>
-        <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-        <Route path={ROUTES.SIGNUP} element={<SignupPage />} />
-      </Route>
-      <Route element={<MainLayout />}>
-        <Route path={ROUTES.HOME} element={<CatalogPage />} />
-        <Route path={ROUTES.PRODUCT_DETAIL} element={<ProductDetailPage />} />
-        <Route path={ROUTES.CART} element={<CartPage />} />
-        <Route element={<ProtectedRoute />}>
-          <Route path={ROUTES.CHECKOUT} element={<CheckoutPage />} />
-          <Route element={<AccountLayout />}>
-            <Route
-              path={ROUTES.ACCOUNT_PERSONAL_INFO}
-              element={<PersonalInfo />}
-            />
-            <Route
-              path={ROUTES.ACCOUNT_PREFERENCES}
-              element={<Preferences />}
-            />
-            <Route path={ROUTES.ACCOUNT_STATISTICS} element={<Statistics />} />
-          </Route>
+  <Routes>
+    <Route element={<AuthLayout />}>
+      <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+      <Route path={ROUTES.SIGNUP} element={<SignupPage />} />
+    </Route>
+    <Route element={<MainLayout />}>
+      <Route path={ROUTES.HOME} element={<CatalogPage />} />
+      <Route path={ROUTES.PRODUCT_DETAIL} element={<ProductDetailPage />} />
+      <Route path={ROUTES.CART} element={<CartPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path={ROUTES.CHECKOUT} element={<CheckoutPage />} />
+        <Route element={<AccountLayout />}>
+          <Route
+            path={ROUTES.ACCOUNT_PERSONAL_INFO}
+            element={<PersonalInfo />}
+          />
+          <Route path={ROUTES.ACCOUNT_PREFERENCES} element={<Preferences />} />
+          <Route path={ROUTES.ACCOUNT_STATISTICS} element={<Statistics />} />
         </Route>
       </Route>
-      <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage />} />
-    </Routes>
-  </Suspense>
+    </Route>
+    <Route
+      path={ROUTES.NOT_FOUND}
+      element={
+        <Suspense fallback={<div>Loading...</div>}>
+          <NotFoundPage />
+        </Suspense>
+      }
+    />
+  </Routes>
 )
 
 export default AppRoutes
