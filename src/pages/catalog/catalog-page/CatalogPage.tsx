@@ -1,7 +1,10 @@
 import { Typography } from '@mui/material'
 
-import './CatalogPage.scss'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+
+import './CatalogPage.scss'
+import Filters from './components/filters/Filters'
+import ProductList from './components/product-list/ProductList'
 
 const CatalogPage = () => {
   useDocumentTitle('Catalog')
@@ -9,6 +12,8 @@ const CatalogPage = () => {
   return (
     <div className="catalog-page">
       <Typography variant="h4">Catalog</Typography>
+      <Filters />
+      <ProductList />
     </div>
   )
 }

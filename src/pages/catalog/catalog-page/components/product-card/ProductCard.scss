@@ -1,0 +1,36 @@
+.product-card {
+  height: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+
+  &:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-4px);
+  }
+
+  .media {
+    height: 160px;
+    object-fit: cover;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing-unit) / 2);
+  }
+
+  .category {
+    color: var(--color-text-secondary);
+    text-transform: capitalize;
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: calc(var(--spacing-unit) / 2);
+  }
+}
