@@ -174,6 +174,24 @@ src/
         AuthLayout.tsx
         AuthLayout.scss
         AuthLayout.test.tsx
+    quantity-stepper/        # +/- and typeable quantity input, shared by
+                             # ProductDetailPage and Cart's CartItem (PR6)
+      QuantityStepper.tsx
+      QuantityStepper.scss
+      QuantityStepper.test.tsx
+      types.ts
+    continue-shopping-link/  # link back to Catalog, shared by ProductDetailPage
+                             # and CartPage (PR6)
+      ContinueShoppingLink.tsx
+      ContinueShoppingLink.scss
+      ContinueShoppingLink.test.tsx
+    page-header/              # 3-slot (left/center/right) row so every
+                             # page's title sits at the same level and
+                             # centers the same way — Catalog/Cart/Product (PR6)
+      PageHeader.tsx
+      PageHeader.scss
+      PageHeader.test.tsx
+      types.ts
   theme/                    # MUI createTheme + color tokens only — the
                              # ThemeModeProvider itself lives in context/
   styles/
@@ -448,7 +466,7 @@ npm install recharts
 - [x] PR 3 - Auth
 - [x] PR 4 - Catalog
 - [x] PR 5 - Product item
-- [ ] PR 6 - Cart
+- [x] PR 6 - Cart
 - [ ] PR 7 - Delivery / checkout
 - [ ] PR 8 - Account: Personal Info
 - [ ] PR 9 - Account: Preferences

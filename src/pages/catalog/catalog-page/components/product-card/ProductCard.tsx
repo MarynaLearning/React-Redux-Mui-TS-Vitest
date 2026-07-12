@@ -1,4 +1,5 @@
 import {
+  Button,
   Card,
   CardActionArea,
   CardContent,
@@ -8,12 +9,16 @@ import {
 import { generatePath, Link as RouterLink } from 'react-router-dom'
 
 import { ROUTES } from '@/routes/constants'
+import { formatCurrency } from '@/utils/currency'
 
 import './ProductCard.scss'
 import type { IProductCardProps } from './types'
+import { useProductCardController } from './useProductCardController'
 
-const ProductCard = ({ product }: IProductCardProps) => {
+const ProductCard = (props: IProductCardProps) => {
+  const { product } = props
   const { id, title, price, category, imageUrl, rating } = product
+  const { onAddToCart, isAddToCartDisabled } = useProductCardController(props)
 
   return (
     <Card className="product-card">
@@ -36,7 +41,7 @@ const ProductCard = ({ product }: IProductCardProps) => {
           </Typography>
           <div className="meta">
             <Typography variant="body1" className="price">
-              ${price.toFixed(2)}
+              {formatCurrency(price)}
             </Typography>
             <Typography variant="body2" className="rating">
               ★ {rating.toFixed(1)}
@@ -44,6 +49,16 @@ const ProductCard = ({ product }: IProductCardProps) => {
           </div>
         </CardContent>
       </CardActionArea>
+      <div className="actions">
+        <Button
+          variant="contained"
+          size="small"
+          onClick={onAddToCart}
+          disabled={isAddToCartDisabled}
+        >
+          Add to Cart
+        </Button>
+      </div>
     </Card>
   )
 }

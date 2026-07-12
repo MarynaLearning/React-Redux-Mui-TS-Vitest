@@ -5,21 +5,22 @@ import { useParams } from 'react-router-dom'
 import { useNotification } from '@/context/NotificationContext'
 import { PRODUCTS } from '@/data/products'
 import { addItem } from '@/store/cart/reducer'
-import { useAppDispatch } from '@/store/hooks'
+import { cartItemsSelector } from '@/store/cart/selectors'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 
 export const useProductDetailPageController = () => {
   const { id } = useParams()
   const product = PRODUCTS.find((candidate) => candidate.id === id)
   const dispatch = useAppDispatch()
   const { notify } = useNotification()
+  const cartItems = useAppSelector(cartItemsSelector)
   const [quantity, setQuantity] = useState<number>(1)
   const [quantityText, setQuantityText] = useState<string>('1')
 
-  // Resets the quantity picker whenever the route's :id changes — React
-  // Router reuses this component instance across param-only navigations,
-  // so without this the previous product's quantity (and its stock bound)
-  // would carry over to the new product. The reset runs in the cleanup,
-  // which React fires for the outgoing id before committing the new one.
+  const cartQuantity =
+    cartItems.find((item) => item.productId === product?.id)?.quantity ?? 0
+  const maxAddable = product ? Math.max(product.stock - cartQuantity, 0) : 0
+
   useEffect(() => {
     return () => {
       setQuantity(1)
@@ -28,8 +29,7 @@ export const useProductDetailPageController = () => {
   }, [id])
 
   const commitQuantity = (value: number) => {
-    if (!product) return
-    const clamped = Math.min(Math.max(value, 1), product.stock)
+    const clamped = Math.min(Math.max(value, 1), Math.max(maxAddable, 1))
     setQuantity(clamped)
     setQuantityText(String(clamped))
   }
@@ -49,9 +49,8 @@ export const useProductDetailPageController = () => {
     setQuantityText(raw)
 
     if (raw === '') return
-    if (!product) return
 
-    setQuantity(Math.min(Math.max(Number(raw), 1), product.stock))
+    setQuantity(Math.min(Math.max(Number(raw), 1), Math.max(maxAddable, 1)))
   }
 
   const onQuantityInputBlur = () => {
@@ -59,8 +58,13 @@ export const useProductDetailPageController = () => {
   }
 
   const onAddToCart = () => {
-    if (!product) return
-    dispatch(addItem({ productId: product.id, quantity }))
+    if (!product || maxAddable <= 0) return
+    dispatch(
+      addItem({
+        productId: product.id,
+        quantity: Math.min(quantity, maxAddable),
+      }),
+    )
     notify(`${product.title} added to cart`, 'success')
     commitQuantity(1)
   }
@@ -69,6 +73,7 @@ export const useProductDetailPageController = () => {
     product,
     quantity,
     quantityText,
+    maxAddable,
     onIncrement,
     onDecrement,
     onQuantityInputChange,

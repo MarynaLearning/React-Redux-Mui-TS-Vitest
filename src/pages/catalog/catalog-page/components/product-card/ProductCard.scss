@@ -11,6 +11,10 @@
     transform: translateY(-4px);
   }
 
+  .MuiCardActionArea-focusHighlight {
+    display: none;
+  }
+
   .media {
     height: 160px;
     object-fit: cover;
@@ -32,5 +36,28 @@
     align-items: center;
     justify-content: space-between;
     margin-top: calc(var(--spacing-unit) / 2);
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--spacing-unit) calc(var(--spacing-unit) * 2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover .actions,
+  &:focus-within .actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  // Touch devices have no hover state — keep the button reachable there.
+  @media (hover: none) {
+    .actions {
+      opacity: 1;
+      pointer-events: auto;
+    }
   }
 }

@@ -1,0 +1,28 @@
+.cart-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(var(--spacing-unit) * 2);
+  margin-top: calc(var(--spacing-unit) * 3);
+
+  .count {
+    color: var(--color-text-secondary);
+    margin-right: auto;
+  }
+
+  @media (max-width: 600px) {
+    justify-content: center;
+
+    .count {
+      flex-basis: 100%;
+      margin-right: 0;
+      text-align: center;
+    }
+
+    .total {
+      flex-basis: 100%;
+      text-align: center;
+    }
+  }
+}

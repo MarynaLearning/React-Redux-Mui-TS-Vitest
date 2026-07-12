@@ -1,0 +1,14 @@
+.cart-item-list {
+  display: flex;
+  flex-direction: column;
+
+  .empty-state-heading {
+    margin-top: calc(var(--spacing-unit) * 4);
+    text-align: center;
+  }
+
+  .empty-state-message {
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
+}

@@ -1,24 +1,37 @@
-import { AppBar, Button, Container, Toolbar, Typography } from '@mui/material'
+import {
+  AppBar,
+  Badge,
+  Button,
+  Container,
+  Toolbar,
+  Typography,
+} from '@mui/material'
 import { Suspense } from 'react'
 import { Link as RouterLink, Outlet } from 'react-router-dom'
+
+import { ROUTES } from '@/routes/constants'
 
 import { NAV_LINKS } from './constants'
 import './MainLayout.scss'
 import { useMainLayoutController } from './useMainLayoutController'
 
 const MainLayout = () => {
-  const { accountLink } = useMainLayoutController()
+  const { accountLink, cartCount } = useMainLayoutController()
 
   return (
     <div className="main-layout">
       <AppBar position="static">
         <Toolbar className="toolbar">
           <Typography variant="h6" className="brand">
-            Shop
+            Weak designed Shop (don't look for login)
           </Typography>
           {NAV_LINKS.map(({ path, label }) => (
             <Button key={path} color="inherit" component={RouterLink} to={path}>
-              {label}
+              {path === ROUTES.CART && cartCount > 0 ? (
+                <Badge badgeContent={cartCount}>{label}</Badge>
+              ) : (
+                label
+              )}
             </Button>
           ))}
           <Button color="inherit" component={RouterLink} to={accountLink.path}>
