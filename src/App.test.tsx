@@ -4,8 +4,10 @@ import { describe, expect, it } from 'vitest'
 import App from './App'
 
 describe('App', () => {
-  it('renders the catalog page at the root route', () => {
+  it('renders the catalog page at the root route', async () => {
     render(<App />)
-    expect(screen.getByRole('heading', { name: 'Catalog' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Catalog' }),
+    ).toBeInTheDocument()
   })
 })
