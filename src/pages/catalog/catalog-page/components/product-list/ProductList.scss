@@ -1,0 +1,13 @@
+.product-list {
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: calc(var(--spacing-unit) * 3);
+  }
+
+  .empty-state {
+    color: var(--color-text-secondary);
+    text-align: center;
+    margin-top: calc(var(--spacing-unit) * 4);
+  }
+}

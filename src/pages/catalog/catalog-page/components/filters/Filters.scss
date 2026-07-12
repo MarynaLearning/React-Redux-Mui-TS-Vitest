@@ -1,0 +1,17 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: calc(var(--spacing-unit) * 2);
+  margin-bottom: calc(var(--spacing-unit) * 3);
+
+  .search-field {
+    flex: 1 1 240px;
+  }
+
+  .category-field,
+  .sort-field {
+    flex: 0 1 200px;
+    min-width: 160px;
+  }
+}

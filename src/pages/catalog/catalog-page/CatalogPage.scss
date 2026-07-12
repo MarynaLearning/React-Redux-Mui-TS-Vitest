@@ -1,2 +1,5 @@
 .catalog-page {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-unit) * 2);
 }

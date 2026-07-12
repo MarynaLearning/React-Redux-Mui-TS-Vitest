@@ -1,0 +1,26 @@
+.product-card {
+  height: 100%;
+
+  .media {
+    height: 160px;
+    object-fit: cover;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing-unit) / 2);
+  }
+
+  .category {
+    color: var(--color-text-secondary);
+    text-transform: capitalize;
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: calc(var(--spacing-unit) / 2);
+  }
+}
