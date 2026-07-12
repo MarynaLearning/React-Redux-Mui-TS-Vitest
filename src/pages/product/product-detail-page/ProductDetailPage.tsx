@@ -1,6 +1,6 @@
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
-import { Button, IconButton, Typography } from '@mui/material'
+import { Button, IconButton, TextField, Typography } from '@mui/material'
 
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
@@ -8,8 +8,16 @@ import './ProductDetailPage.scss'
 import { useProductDetailPageController } from './useProductDetailPageController'
 
 const ProductDetailPage = () => {
-  const { product, quantity, onIncrement, onDecrement, onAddToCart } =
-    useProductDetailPageController()
+  const {
+    product,
+    quantity,
+    quantityText,
+    onIncrement,
+    onDecrement,
+    onQuantityInputChange,
+    onQuantityInputBlur,
+    onAddToCart,
+  } = useProductDetailPageController()
 
   useDocumentTitle(product ? product.title : 'Product')
 
@@ -47,32 +55,57 @@ const ProductDetailPage = () => {
         <Typography variant="body2" className="stock">
           {isOutOfStock ? 'Out of stock' : `${stock} in stock`}
         </Typography>
-        {!isOutOfStock && (
-          <div className="quantity-stepper">
-            <IconButton
-              aria-label="Decrease quantity"
-              onClick={onDecrement}
-              disabled={quantity <= 1}
+        {isOutOfStock ? (
+          <Button
+            className="add-to-cart-button"
+            variant="contained"
+            size="small"
+            disabled
+          >
+            Add to Cart
+          </Button>
+        ) : (
+          <div className="cart-actions">
+            <div className="quantity-stepper">
+              <IconButton
+                aria-label="Decrease quantity"
+                onClick={onDecrement}
+                disabled={quantity <= 1}
+              >
+                <RemoveIcon />
+              </IconButton>
+              <TextField
+                className="quantity-input"
+                size="small"
+                value={quantityText}
+                onChange={onQuantityInputChange}
+                onBlur={onQuantityInputBlur}
+                slotProps={{
+                  htmlInput: {
+                    inputMode: 'numeric',
+                    pattern: '[0-9]*',
+                    'aria-label': 'Quantity',
+                  },
+                }}
+              />
+              <IconButton
+                aria-label="Increase quantity"
+                onClick={onIncrement}
+                disabled={quantity >= stock}
+              >
+                <AddIcon />
+              </IconButton>
+            </div>
+            <Button
+              className="add-to-cart-button"
+              variant="contained"
+              size="small"
+              onClick={onAddToCart}
             >
-              <RemoveIcon />
-            </IconButton>
-            <Typography className="quantity">{quantity}</Typography>
-            <IconButton
-              aria-label="Increase quantity"
-              onClick={onIncrement}
-              disabled={quantity >= stock}
-            >
-              <AddIcon />
-            </IconButton>
+              Add to Cart
+            </Button>
           </div>
         )}
-        <Button
-          variant="contained"
-          onClick={onAddToCart}
-          disabled={isOutOfStock}
-        >
-          Add to Cart
-        </Button>
       </div>
     </div>
   )

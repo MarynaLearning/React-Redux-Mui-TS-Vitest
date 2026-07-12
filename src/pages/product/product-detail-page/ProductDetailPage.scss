@@ -28,15 +28,29 @@
     gap: calc(var(--spacing-unit) * 2);
   }
 
+  .cart-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(var(--spacing-unit) * 2);
+  }
+
   .quantity-stepper {
     display: flex;
     align-items: center;
     gap: var(--spacing-unit);
 
-    .quantity {
-      min-width: calc(var(--spacing-unit) * 3);
-      text-align: center;
+    .quantity-input {
+      width: calc(var(--spacing-unit) * 8);
+
+      input {
+        text-align: center;
+      }
     }
+  }
+
+  .add-to-cart-button {
+    align-self: flex-start;
   }
 
   .not-found {

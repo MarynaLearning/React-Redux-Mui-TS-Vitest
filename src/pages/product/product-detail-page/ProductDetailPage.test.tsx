@@ -56,6 +56,43 @@ describe('ProductDetailPage', () => {
     ).toBeInTheDocument()
   })
 
+  it('allows typing a quantity directly', async () => {
+    const user = userEvent.setup()
+    const { store } = renderProductDetailPage('/product/p1')
+
+    const quantityInput = screen.getByLabelText('Quantity')
+    await user.clear(quantityInput)
+    await user.type(quantityInput, '5')
+    await user.click(screen.getByRole('button', { name: 'Add to Cart' }))
+
+    expect(store.getState().cart.items).toEqual([
+      { productId: 'p1', quantity: 5 },
+    ])
+  })
+
+  it('clamps a typed quantity above stock down to the available stock', async () => {
+    const user = userEvent.setup()
+    renderProductDetailPage('/product/p1')
+
+    const quantityInput = screen.getByLabelText('Quantity')
+    await user.clear(quantityInput)
+    await user.type(quantityInput, '999')
+    await user.tab()
+
+    expect(quantityInput).toHaveValue('24')
+  })
+
+  it('ignores non-numeric characters typed into the quantity field', async () => {
+    const user = userEvent.setup()
+    renderProductDetailPage('/product/p1')
+
+    const quantityInput = screen.getByLabelText('Quantity')
+    await user.clear(quantityInput)
+    await user.type(quantityInput, 'abc5')
+
+    expect(quantityInput).toHaveValue('5')
+  })
+
   it('resets the quantity back to one after adding to cart', async () => {
     const user = userEvent.setup()
     renderProductDetailPage('/product/p1')
