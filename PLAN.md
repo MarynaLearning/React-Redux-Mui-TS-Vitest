@@ -155,7 +155,7 @@ src/
     ProtectedRoute.tsx
     ProtectedRoute.types.ts
   hooks/                    # reusable hooks with NO Context/store dependency
-                             # (useCart, useDebounce) — context hooks live inside
+                             # (e.g. useDebounce) — context hooks live inside
                              # their context/*.tsx file; store hooks live in
                              # store/hooks.ts
   context/                  # one file per context: interface + createContext +
@@ -191,7 +191,10 @@ src/
 **hooks distinction:** `store/hooks.ts` = typed Redux hooks only. Context hooks
 (`useNotification`, `useThemeMode`) live inside their own `context/*.tsx` file,
 never in `src/hooks/`. `src/hooks/` is reserved for reusable hooks with no
-Context/store dependency (`useCart`, `useDebounce`).
+Context/store dependency (e.g. `useDebounce`). Store-dependent page logic
+(e.g. cart interactions) lives in that page's own `use<Page>Controller.ts`,
+dispatching/selecting directly from the relevant `store/<name>/` folder —
+same pattern as `auth`/`filter`, not a shared cross-page hook.
 
 **utils convention:** `src/utils/` holds general-purpose, reusable constants
 (`UPPER_CASE`, e.g. `TIME_DURATIONS`, `EMAIL_REGEX`) and pure-function helpers
@@ -397,7 +400,7 @@ npm run dev
 
 ```bash
 git checkout -b feature/product-item
-# create: pages/product/product-detail-page/ProductDetailPage.tsx, store/cart/reducer.ts, hooks/useCart.ts
+# create: pages/product/product-detail-page/ProductDetailPage.tsx, store/cart/reducer.ts
 ```
 
 ### PR 6 — Cart
@@ -444,7 +447,7 @@ npm install recharts
 - [x] PR 2 - Core structure & routing
 - [x] PR 3 - Auth
 - [x] PR 4 - Catalog
-- [ ] PR 5 - Product item
+- [x] PR 5 - Product item
 - [ ] PR 6 - Cart
 - [ ] PR 7 - Delivery / checkout
 - [ ] PR 8 - Account: Personal Info
