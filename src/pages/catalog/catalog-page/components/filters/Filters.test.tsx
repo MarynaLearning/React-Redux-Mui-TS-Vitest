@@ -25,6 +25,23 @@ describe('Filters', () => {
     expect(store.getState().filter.searchTerm).toBe('lamp')
   })
 
+  it('has no clear button until there is a search term, then clears it on click', async () => {
+    const user = userEvent.setup()
+    const { store } = renderWithProviders(<Filters />)
+
+    expect(
+      screen.queryByRole('button', { name: 'Clear search' }),
+    ).not.toBeInTheDocument()
+
+    await user.type(screen.getByLabelText('Search'), 'lamp')
+    await user.click(screen.getByRole('button', { name: 'Clear search' }))
+
+    expect(store.getState().filter.searchTerm).toBe('')
+    expect(
+      screen.queryByRole('button', { name: 'Clear search' }),
+    ).not.toBeInTheDocument()
+  })
+
   it('dispatches the selected category', async () => {
     const user = userEvent.setup()
     const { store } = renderWithProviders(<Filters />)

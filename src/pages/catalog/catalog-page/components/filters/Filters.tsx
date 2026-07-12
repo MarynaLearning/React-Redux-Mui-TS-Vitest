@@ -1,5 +1,7 @@
+import ClearIcon from '@mui/icons-material/Clear'
 import {
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
@@ -16,6 +18,7 @@ const Filters = () => {
     category,
     sort,
     onSearchTermChange,
+    onClearSearch,
     onCategoryChange,
     onSortChange,
   } = useFiltersController()
@@ -27,6 +30,20 @@ const Filters = () => {
         value={searchTerm}
         onChange={onSearchTermChange}
         className="search-field"
+        slotProps={{
+          input: {
+            endAdornment: searchTerm ? (
+              <IconButton
+                aria-label="Clear search"
+                size="small"
+                edge="end"
+                onClick={onClearSearch}
+              >
+                <ClearIcon fontSize="small" />
+              </IconButton>
+            ) : undefined,
+          },
+        }}
       />
       <FormControl className="category-field">
         <InputLabel id="category-label">Category</InputLabel>

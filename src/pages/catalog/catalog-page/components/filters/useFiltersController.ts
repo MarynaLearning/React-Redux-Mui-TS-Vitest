@@ -21,6 +21,10 @@ export const useFiltersController = () => {
     dispatch(setSearchTerm(event.target.value))
   }
 
+  const onClearSearch = () => {
+    dispatch(setSearchTerm(''))
+  }
+
   const onCategoryChange = (event: SelectChangeEvent<TCategory | 'all'>) => {
     dispatch(setCategory(event.target.value))
   }
@@ -34,6 +38,7 @@ export const useFiltersController = () => {
     category,
     sort,
     onSearchTermChange,
+    onClearSearch,
     onCategoryChange,
     onSortChange,
   }
