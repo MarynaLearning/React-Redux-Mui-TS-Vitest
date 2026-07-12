@@ -4,16 +4,17 @@ import { Link, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import { ROUTES } from '@/routes/constants'
+import type { ICartItem } from '@/store/cart/types'
 import { renderWithProviders } from '@/test/renderWithProviders'
 
 import ProductDetailPage from './ProductDetailPage'
 
-const renderProductDetailPage = (route: string) =>
+const renderProductDetailPage = (route: string, cartItems: ICartItem[] = []) =>
   renderWithProviders(
     <Routes>
       <Route path={ROUTES.PRODUCT_DETAIL} element={<ProductDetailPage />} />
     </Routes>,
-    { route },
+    { route, preloadedState: { cart: { items: cartItems } } },
   )
 
 describe('ProductDetailPage', () => {
@@ -30,7 +31,12 @@ describe('ProductDetailPage', () => {
   it('shows a not-found message for an invalid id', () => {
     renderProductDetailPage('/product/does-not-exist')
 
-    expect(screen.getByText('Product not found.')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Product not found' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Continue Shopping' }),
+    ).toBeInTheDocument()
   })
 
   it('disables the decrement control at the minimum quantity of one', () => {
@@ -106,6 +112,58 @@ describe('ProductDetailPage', () => {
     expect(
       screen.getByRole('button', { name: 'Decrease quantity' }),
     ).toBeDisabled()
+  })
+
+  it('limits the selectable quantity to what is still available once some is already in the cart', async () => {
+    const user = userEvent.setup()
+    renderProductDetailPage('/product/p1', [{ productId: 'p1', quantity: 20 }])
+
+    expect(screen.getByText('24 in stock')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Increase quantity' }))
+    await user.click(screen.getByRole('button', { name: 'Increase quantity' }))
+    await user.click(screen.getByRole('button', { name: 'Increase quantity' }))
+
+    expect(
+      screen.getByRole('button', { name: 'Increase quantity' }),
+    ).toBeDisabled()
+    expect(screen.getByLabelText('Quantity')).toHaveValue('4')
+  })
+
+  it('replaces the add-to-cart controls once all available stock is already in the cart', () => {
+    renderProductDetailPage('/product/p1', [{ productId: 'p1', quantity: 24 }])
+
+    expect(
+      screen.getByText('All available stock is already in your cart'),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Add to Cart' }),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Quantity')).not.toBeInTheDocument()
+  })
+
+  it('caps what gets added to the cart at exactly the remaining stock', async () => {
+    const user = userEvent.setup()
+    const { store } = renderProductDetailPage('/product/p1', [
+      { productId: 'p1', quantity: 20 },
+    ])
+
+    await user.click(screen.getByRole('button', { name: 'Increase quantity' }))
+    await user.click(screen.getByRole('button', { name: 'Increase quantity' }))
+    await user.click(screen.getByRole('button', { name: 'Increase quantity' }))
+    await user.click(screen.getByRole('button', { name: 'Add to Cart' }))
+
+    expect(store.getState().cart.items).toEqual([
+      { productId: 'p1', quantity: 24 },
+    ])
+  })
+
+  it('links back to the catalog via Continue Shopping', () => {
+    renderProductDetailPage('/product/p1')
+
+    expect(
+      screen.getByRole('link', { name: 'Continue Shopping' }),
+    ).toHaveAttribute('href', ROUTES.HOME)
   })
 
   it('resets quantity to one when navigating directly between two product pages', async () => {

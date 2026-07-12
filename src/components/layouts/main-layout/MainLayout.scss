@@ -5,6 +5,20 @@
 
   .toolbar {
     gap: calc(var(--spacing-unit) * 2);
+    flex-wrap: wrap;
+
+    .MuiButton-root {
+      overflow: visible;
+    }
+
+    .MuiBadge-badge {
+      top: 6px;
+      right: -10px;
+      background-color: transparent;
+      border: 1px solid currentColor;
+      color: inherit;
+      box-shadow: none;
+    }
   }
 
   .brand {

@@ -3,11 +3,12 @@ import { Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import { ROUTES } from '@/routes/constants'
+import type { ICartItem } from '@/store/cart/types'
 import { renderWithProviders } from '@/test/renderWithProviders'
 
 import MainLayout from './MainLayout'
 
-const renderMainLayout = (isLoggedIn: boolean) =>
+const renderMainLayout = (isLoggedIn: boolean, cartItems: ICartItem[] = []) =>
   renderWithProviders(
     <Routes>
       <Route element={<MainLayout />}>
@@ -15,7 +16,10 @@ const renderMainLayout = (isLoggedIn: boolean) =>
       </Route>
     </Routes>,
     {
-      preloadedState: { auth: { accounts: [], user: null, isLoggedIn } },
+      preloadedState: {
+        auth: { accounts: [], user: null, isLoggedIn },
+        cart: { items: cartItems },
+      },
       route: ROUTES.HOME,
     },
   )
@@ -45,5 +49,11 @@ describe('MainLayout', () => {
     expect(
       screen.queryByRole('link', { name: 'Login' }),
     ).not.toBeInTheDocument()
+  })
+
+  it('shows a cart item-count badge when the cart has items', () => {
+    renderMainLayout(false, [{ productId: 'p1', quantity: 3 }])
+
+    expect(screen.getByText('3')).toBeInTheDocument()
   })
 })

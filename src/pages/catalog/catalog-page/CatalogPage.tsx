@@ -1,5 +1,4 @@
-import { Typography } from '@mui/material'
-
+import PageHeader from '@/components/page-header/PageHeader'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 import './CatalogPage.scss'
@@ -11,7 +10,7 @@ const CatalogPage = () => {
 
   return (
     <div className="catalog-page">
-      <Typography variant="h4">Catalog</Typography>
+      <PageHeader title="Catalog" />
       <Filters />
       <ProductList />
     </div>
