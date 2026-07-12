@@ -1,11 +1,16 @@
 import { Typography } from '@mui/material'
 
 import './CatalogPage.scss'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
-const CatalogPage = () => (
-  <div className="catalog-page">
-    <Typography variant="h4">Catalog</Typography>
-  </div>
-)
+const CatalogPage = () => {
+  useDocumentTitle('Catalog')
+
+  return (
+    <div className="catalog-page">
+      <Typography variant="h4">Catalog</Typography>
+    </div>
+  )
+}
 
 export default CatalogPage

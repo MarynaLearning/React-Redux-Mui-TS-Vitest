@@ -2,12 +2,14 @@ import { Button, Link, Typography } from '@mui/material'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 
 import './LoginPage.scss'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { ROUTES } from '@/routes/constants'
 
 import LoginForm from './components/login-form/LoginForm'
 
 const LoginPage = () => {
   const navigate = useNavigate()
+  useDocumentTitle('Login')
 
   return (
     <div className="login-page">
